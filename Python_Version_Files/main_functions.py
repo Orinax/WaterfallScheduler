@@ -32,6 +32,10 @@ event_menu_options = ["(a) Nothing. Return to the main menu.",
                       "(c) Delete all listed events",
                       ]
 
+data_frame_options = ["(p) Push to Google Calendar.",
+                      "(s) Slice the dataframe by date.",
+                      "(g) Go back."]
+
 
 def handle_authentication():
     """Shows basic usage of the Google Calendar API.
@@ -58,10 +62,10 @@ def handle_authentication():
     return creds
 
 
-def welcome_message():
-    print()
-    print("Calendar Helper running.")
-    print("What would you like to do? (Please choose from the list)")
+# def welcome_message():
+#     print()
+#     print("Calendar Helper running.")
+#     print("What would you like to do? (Please choose from the list)")
 
 
 def display_menu(menu):
@@ -70,17 +74,19 @@ def display_menu(menu):
     # print()
     # print("Calendar Helper running.")
     # print("What would you like to do? (Please choose from the list)")
+    print("\nWhat would you like to do? (Please choose from the list)")
     for option in menu:
         print("    " + option)
+    user_input = input(">>> ")
+    return user_input
 
 
 def double_check_user_choice(dataframe, calendar_id):
-    """Currently this function is tailored to one other event_creator function. This should be adjusted to allow
-    for all calls to Google Calendar API to be double-checked before running. This way the user will be able to see
-    how many events will be created, and which calendar or calendars they will be created on."""
+    """Give the user a chance to see how many events they will be creating and on which calendars the events
+    will be created. The user can then decide to proceed with event creation or stop."""
     print("Are you sure you wish to proceed?")
     print(f"Please note: proceeding will create {dataframe.shape[0]} events.")
-    print(f"The events will be created on the Google Calendar with the following calendarId:")
+    print(f"The events will be created on the Google Calendar with the following calendarId(s):")
     print(f"{calendar_id}")
     proceed_or_not = input("Will you continue? (y/n): ")
     return proceed_or_not
@@ -129,8 +135,8 @@ def work_with_events(creds, calendar_id, number_of_events, events_to_work_with):
     while still_working_with_events:
         print()
         print(f"What would you like to do with the {number_of_events} events listed above?")
-        display_menu(event_menu_options)
-        user_input = input(">>> ")
+        user_input = display_menu(event_menu_options)
+        # user_input = input(">>> ")
         if user_input.lower() == "a":
             still_working_with_events = False
             print("Returning to main menu.")
@@ -140,6 +146,23 @@ def work_with_events(creds, calendar_id, number_of_events, events_to_work_with):
         elif user_input.lower() == "c":
             delete_events_in_bulk(creds, calendar_id, events_to_work_with)
             still_working_with_events = False
+
+
+def make_events_on_google_calendar(dataframe, all_day_event, all_day_template, timed_event_template, creds, calendar_id):
+    """Accept a dataframe and an all_day_event Boolean value. Depending on the type of event, the correct
+    corresponding function will be called."""
+    event_creation_count = 0
+    if all_day_event:
+        for row in dataframe.itertuples(index=False):
+            create_rotation_day_events(all_day_template, creds, row[0], row[0], row[1], calendar_id)
+            event_creation_count += 1
+            print(f"Event number: {event_creation_count}")
+    else:
+        for period in dataframe.itertuples(index=False):
+            create_teacher_class_event(timed_event_template, creds, period[0], period[4], period[5], period[7], period[3], period[10])
+            event_creation_count += 1
+            print(f"Event number: {event_creation_count}")
+    print(f"Total number of events created: {event_creation_count}")
 
 
 def create_event(event, creds):

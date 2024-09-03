@@ -1,4 +1,4 @@
-all_day_event = {
+all_day_template = {
     'summary': 'Calendar API Test',
     'location': 'Chiang Mai',
     'description': '',
@@ -28,7 +28,7 @@ all_day_event = {
     },
 }
 
-timed_event = {
+timed_event_template = {
     'summary': 'Calendar API Test',
     'location': 'Chiang Mai',
     'description': '~class~',
